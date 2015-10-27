@@ -1,0 +1,295 @@
+﻿@model MyMoneyMyFuture.Models.ViewModels.PairItemViewModel<int, int>
+
+@{
+    ViewBag.Title = "SiteLinks";
+    Layout = "~/Views/Shared/_LayoutHomer.cshtml";
+}
+
+@Styles.Render("~/Content/midinero.css")
+
+<h2 style="text-align: center">SiteLinks</h2>
+
+<div class="form-group sitelink-menu" data-ng-controller="mainController as siteLinkController">
+
+    <div class="input-group m-b" data-ng-repeat="siteLink in siteLinkController.items">
+
+        <div class="input-group-btn">
+            <button class="btn-siteLink btn btn-default dropdown-toggle" style="margin-right: 5px"
+                    data-toggle="dropdown" type="button" data-ng-if="!siteLink.selectedLinkType">
+                {{siteLinkController.default}}<span class="caret"></span>
+            </button>
+
+            <button class="btn-siteLink btn btn-default dropdown-toggle" data-toggle="dropdown" type="button" style="margin-right: 5px"
+                    data-ng-if="siteLink.selectedLinkType" data-ng-model="siteLink.selectedLinkType">
+                <i class="fa fa-{{siteLink.selectedLinkType.class}}"></i> {{siteLink.selectedLinkType.name}}
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
+                <li class="sitelink" data-ng-repeat="linkType in siteLinkController.linkTypes">
+                    <a class="link" data-ng-click="siteLinkController.selectLinkType(linkType, siteLink)">
+                        <i class="fa fa-{{linkType.class}}"></i> {{linkType.name}}
+                    </a>
+                </li>
+            </ul>
+
+        </div>
+
+        <div class="input-group-btn">
+            <div data-ng-dropdown-multiselect
+                 name="groupType"
+                 options="siteLinkController.groupTypes"
+                 selected-model="siteLink.selectGroupTypes"
+                 translation-texts="siteLinkController.checkBoxText"
+                 extra-settings="siteLinkController.checkBoxSettings"
+                 style="margin-right: 5px">
+            </div>
+        </div>
+
+        <div data-ng-form="siteLinksForm">
+            <input type="url" class="form-control" data-ng-model="siteLink.url" style="width: 80%" required>
+        </div>
+        <a class="link-update btn btn-primary" data-ng-disabled="siteLinksForm.$invalid || siteLinkController.isLinkValid(siteLink)" data-ng-click="siteLinkController.saveRow(siteLink)"
+           style="margin-left: 5px">
+            <i class="fa fa-paste"></i>
+        </a>
+        <a class="link-delete btn btn-primary" style="margin-left: 5px" data-ng-click="siteLinkController.deleteRow(siteLink)">
+            <i class="fa fa-trash-o"></i>
+        </a>
+
+    </div>
+
+    <a class="btn btn-primary" data-ng-click="siteLinkController.addRow()">Add</a>
+    <a class="btn btn-primary" style="margin-left: 880px" data-ng-click="siteLinkController.saveAll()">Save All</a>
+</div>
+
+@section pageInitScripts {
+    <script type="text/javascript">
+
+        mmmf.extraNgDependencies = ["angularjs-dropdown-multiselect"];
+
+    </script>
+}
+
+@section scripts {
+
+    <script type="text/javascript" src="~/Scripts/lodash.js"></script>
+    <script type="text/javascript" src="~/Scripts/angularjs-dropdown-multiselect.js"></script>
+    <script type="text/javascript" src="~/Scripts/mmmf.services.siteLinks.js"></script>
+
+    <script type="text/javascript">
+        mmmf.page.ownerId = @Model.PrimaryItem;
+        mmmf.page.ownerType = @Model.SecondaryItem;
+    </script>
+
+    <script type="text/javascript" src="~/Scripts/mmmf.ui.alerts.js"></script>
+
+    <!-- Custom Script -->
+    <script type="text/javascript">
+
+        mmmf.services.siteLinks.factory = function ($baseService) {
+
+            var aServiceObject = mmmf.services.siteLinks;
+
+            var newService = $baseService.merge(true, {}, aServiceObject, $baseService);
+
+            return newService;
+        }
+
+        mmmf.page.mainControllerFactory = function ($scope, $baseController, $siteLinksService) {
+            var vm = this;
+
+            $baseController.merge(vm, $baseController);
+
+            vm.linkTypes = [
+                { "id": 1, "class": 'twitter', "name": 'Twitter' },
+                { "id": 2, "class": 'facebook', "name": 'Facebook' },
+                { "id": 3, "class": 'google-plus', "name": 'Google+' },
+                { "id": 4, "class": 'linkedin', "name": 'Linkedin' },
+                { "id": 5, "class": 'skype', "name": 'Skype'},
+                { "id": 6, "class": 'youtube-play', "name": 'Youtube'},
+                { "id": 7, "class": 'flickr', "name": "Flickr"},
+                { "id": 8, "class": 'pinterest', "name": "Pinterest"}
+            ];
+            vm.groupTypes = [
+                { "id": 1, "name": "Header"},
+                { "id": 2, "name": "Footer"},
+                { "id": 4, "name": "Blog"}
+            ];
+
+            // AngularJS dropdown multiselect setting variables
+            vm.selectedModel = 'Select Group'
+            vm.checkBoxText = {buttonDefaultText: 'Select Group'};
+            vm.checkBoxSettings = {displayProp: 'name'};
+
+            vm.$scope = $scope;
+            vm.siteLinksService = $siteLinksService;
+            vm.notify = vm.siteLinksService.getNotifier($scope);
+            vm.default = "Select Link";
+            vm.selectedLinkType = null;
+            vm.selectLinkType = _selectLinkType;
+            vm.render = _render;
+            vm.isLinkValid = _isLinkValid;
+            vm.saveRow = _saveRow;
+            vm.deleteRow = _deleteRow;
+            vm.saveAll = _saveAll;
+            vm.addRow = _addRow;
+            vm.deleteSuccess = _deleteSuccess;
+
+            vm.items = [{}];
+
+            vm.render();
+
+            function _render() {
+                vm.siteLinksService.readType(mmmf.page.ownerId, mmmf.page.ownerType, readSuccess, ajaxError);
+            }
+
+            function _isLinkValid(link) {
+                var invalid = true;
+
+                if (link.selectedLinkType != null && link.selectGroupTypes.length > 0) {
+                    invalid = false;
+                }
+
+                return invalid;
+            }
+
+            function _selectLinkType(linkType, currentLinkObject) {
+                currentLinkObject.selectedLinkType = linkType;
+
+            }
+
+            function _saveRow(currRow) {
+                var myData = {};
+                myData.url = currRow.url;
+                myData.type = currRow.selectedLinkType.id;
+                myData.group = 0;
+                myData.ownerId = mmmf.page.ownerId;
+                myData.ownerType = mmmf.page.ownerType;
+
+                for (var i = 0; i < currRow.selectGroupTypes.length; i++) {
+                    myData.group += currRow.selectGroupTypes[i].id;
+                }
+
+                vm.siteLinksService.add(myData, currRow.selectedLinkType, saveRowSuccess, ajaxError);
+            }
+
+            function _deleteRow(currRow) {
+
+                var confirmMsg = "Are you sure you want to delete?";
+                function deleteConfirm() {
+                    var myType = currRow.selectedLinkType.id;
+                    var ownerId = mmmf.page.ownerId;
+                    var ownerType = mmmf.page.ownerType;
+                    vm.siteLinksService.delete(myType, ownerId, ownerType, currRow, vm.deleteSuccess, ajaxError);
+                }
+                function deleteCancel() {
+                    console.log("Delete Cancel");
+                }
+                mmmf.ui.alerts.confirm(confirmMsg, deleteConfirm, deleteCancel);
+
+            }
+
+            function _saveAll() {
+                for (var item of vm.items) {
+                    vm.saveRow(item);
+                }
+            }
+
+            function _addRow() {
+                var newObj = {};
+                vm.items.push(newObj);
+                console.log(vm.items);
+            }
+
+            function readSuccess(data) {
+
+                vm.notify(dataParse(data));
+            }
+
+            function dataParse(data) {
+
+                if (data.items != null) {
+                    vm.items = data.items;
+
+                    for (item of data.items) {
+
+                        for (linkType of vm.linkTypes) {
+                            if (linkType.id === item.type) {
+                                item.selectedLinkType = linkType;
+                                var linkIndex = vm.linkTypes.indexOf(linkType);
+                                if (linkIndex > -1) {
+                                    vm.linkTypes.splice(linkIndex, 1);
+                                }
+                                break;
+                            }
+                        }
+
+                        if(!item.selectGroupTypes)
+                        {
+                            item.selectGroupTypes = [];
+                        }
+
+                        for (groupType of vm.groupTypes) {
+                            var hasGroup = vm.hasFlag(item.group, groupType.id);
+
+                            if(hasGroup)
+                            {
+                                item.selectGroupTypes.push(groupType);
+                            }
+
+                        }
+
+                        console.log(item);
+                    }
+                }
+
+            }
+
+            function saveRowSuccess(data, linkType) {
+                if (data != null) {
+                    console.log("Add Ajax Success!");
+                    console.log(JSON.stringify(data.item));
+
+                    var linkIndex = vm.linkTypes.indexOf(linkType);
+                    if (linkIndex > -1) {
+                        vm.notify(vm.linkTypes.splice(linkIndex, 1));
+                    }
+
+                    mmmf.ui.alerts.notifications.success("Link Saved!");
+                }
+            }
+
+            function _deleteSuccess(data, currRow) {
+                var rowIndex = vm.items.indexOf(currRow);
+                if (rowIndex > -1) {
+                    vm.notify(vm.items.splice(rowIndex, 1));
+                }
+
+                vm.linkTypes.push(currRow.selectedLinkType);
+
+                console.log("Delete Success");
+                console.log(currRow);
+            }
+
+            function ajaxError(jqXHR) {
+                console.log("Ajax Error!");
+                console.log(jqXHR.responseJSON);
+            }
+
+        }
+
+        mmmf.ng.addService(mmmf.ng.app.module
+            , "$siteLinksService"
+            , ["$baseService"]
+            , mmmf.services.siteLinks.factory);
+
+        mmmf.ng.addController(mmmf.ng.app.module
+            , "mainController"
+            , ['$scope', '$baseController', '$siteLinksService']
+            , mmmf.page.mainControllerFactory);
+
+    </script>
+
+}
+

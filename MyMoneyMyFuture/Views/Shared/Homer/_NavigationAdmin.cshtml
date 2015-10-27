@@ -1,0 +1,95 @@
+﻿<div id="navigation" data-ng-controller="identityCtrl as id">
+
+    <!-- START USER BIDNESS -->
+    <div class="profile-picture">
+        <div class="center-block sidebar-img-width">
+            <a data-ng-href="/users/members/{{id.handle}}">
+                <img data-ng-src="http://sabio-training.s3-us-west-2.amazonaws.com{{id.avatar}}" class="img-circle m-b img-responsive" alt="My Avatar" title="My Avatar">
+            </a>
+        </div>
+
+        <div class="stats-label text-color">
+            <span class="font-extra-bold font-uppercase">{{id.firstName}} {{id.lastName}}</span>
+
+            <div>
+                <ul class="list-inline clearfix">
+                    <li>
+                        <small>
+                            <a href="/users/update" class="text-muted"
+                               data-ng-class="{'font-trans': hover}"
+                               data-ng-mouseenter="hover = true"
+                               data-ng-mouseleave="hover = false">My Account</a>
+                        </small>
+                    </li>
+                    <li>
+                        <small>
+                            <a data-ng-click="id.logout()" class="text-muted"
+                               data-ng-class="{'font-trans': hover2}"
+                               data-ng-mouseenter="hover2 = true"
+                               data-ng-mouseleave="hover2 = false">Logout</a>
+                        </small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- END USER BIDNESS -->
+
+    <ul class="nav" id="side-menu">
+        <li>
+            <a href="/users/members/{{id.handle}}#/"><span class="nav-label">My Profile</span></a>
+        </li>
+
+        <li>
+            <a href="/admin/quick#/PendingQQs"><span class="nav-label">Quick Questions</span> </a>
+        </li>
+
+        <li>
+            <a href="/forum"><span class="nav-label">Forum </span></a>
+        </li>
+
+        <li>
+            <a href="#"><span class="nav-label">Blogs</span><span class="fa arrow"></span> </a>
+            <ul class="nav nav-second-level">
+                <li><a href="/admin/blogs/add/">Add new blog</a></li>
+                <li><a href="/admin/blogs">Manage blogs</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#"><span class="nav-label">CMS</span><span class="fa arrow"></span></a>
+            <ul class="nav nav-second-level">
+                <li><a href="/admin/cms/pages#/">CMS Pages</a></li>
+                <li><a href="/admin/cms/templates">CMS Templates</a></li>
+                <li><a href="/admin/cms/pages#/create">Add New CMS Page</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="/plans/dashboard"><span class="nav-label">Plans</span> </a>
+        </li>
+
+        <li>
+            <a href="/tests/budget-boxes"><span class="nav-label">Budget Boxes</span> </a>
+        </li>
+
+        <li>
+            <a href="#"><span class="nav-label">FAQs</span><span class="fa arrow"></span> </a>
+            <ul class="nav nav-second-level">
+                <li><a href="/faqs/getfaqs">View all FAQs</a></li>
+                <li><a href="/faqs/add">Add new FAQ</a></li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="~/MetaTags/1/1"><span class="nav-label">Meta Tags</span></a>
+        </li>
+        <li>
+            <a href="~/SiteLinks/1/1"><span class="nav-label">Site Links</span></a>
+        </li>
+
+        <li>
+            <a href="/users"><span class="nav-label">Users</span> </a>
+        </li>
+    </ul>
+</div>  

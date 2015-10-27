@@ -1,0 +1,32 @@
+﻿<div class="color-line">
+</div>
+
+<nav role="navigation">
+    <div class="header-link hide-menu"><i class="fa fa-bars"></i></div>
+    <div class="logo-small">
+        <span class="text-primary">MiDinero</span>
+    </div>
+    <form role="search" class="navbar-form-custom" method="post" action="#" id="quickQuestionsForm">
+        <div class="form-group">
+            <input type="text" placeholder="Ask a quick question" class="form-control-midinero" name="QuickQuestion" id="quickQuestions">
+        </div>
+    </form>
+
+    <div class="navbar-right">
+        <ul class="nav navbar-nav no-borders">
+            <li class="dropdown" data-ng-controller="identityCtrl as id">
+                <a data-ng-click="id.logout()" title="Logout">
+                    <i class="pe-7s-upload pe-rotate-90"></i>
+                </a>
+            </li>
+            <li data-ng-controller="liveChat as lc">
+                <a>
+                    <i ng-show="lc.OnlineAdmin" class="pe-7s-light" style="color:#62cb31"></i>
+                    <i ng-show="!lc.OnlineAdmin" class="pe-7s-light" style="color:#e74c3c"></i>
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+

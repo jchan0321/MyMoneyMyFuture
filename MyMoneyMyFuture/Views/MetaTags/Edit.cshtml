@@ -1,0 +1,174 @@
+﻿
+@model MyMoneyMyFuture.Models.ViewModels.PairItemViewModel<int, int>
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/_LayoutHomer.cshtml";
+}
+
+@Styles.Render("~/Content/metatags.css")
+@Styles.Render("~/Vendor/xeditable/bootstrap3-editable/css/bootstrap-editable.css")
+
+<h2 style="text-align: center">Page Meta Tag Details</h2>
+
+<div class="panel-body">
+
+    <div id="values">
+
+    </div>
+
+</div>
+
+@section scripts {
+
+    <!-- x-editable bootstrap js -->
+    <script type="text/javascript" src="~/Vendor/xeditable/bootstrap3-editable/js/bootstrap-editable.js"></script>
+
+    <!-- meta tags ajax factories -->
+    <script type="text/javascript" src="~/Scripts/mmmf.services.metaTags.js"></script>
+
+    <script type="text/javascript">
+
+        Mmmf.page.ownerId = @Model.PrimaryItem;
+        Mmmf.page.ownerType = @Model.SecondaryItem;
+
+    </script>
+
+    <script type="text/template" id="metaValueBox">
+        <div class="table" style="clear: both">
+            <div class="tr form-group pageMetaTagId" type="hidden"></div>
+            <div class="tr form-group metaTagId" type="hidden"></div>
+            <div class="tr form-group">
+                <div class="col-md-4 group td tdleft">Value</div>
+                <div class="col-md-8 group td tdright">
+                    <a href="#" data-type="text"
+                       data-title="Enter Value" class="editable editable-click value metaV"></a>
+                </div>
+            </div>
+            <div class="tr form-group">
+                <div class="col-md-4 group td tdleft">Type</div>
+                <div class="col-md-8 group td tdright"><p class="type"></p></div>
+            </div>
+            <div class="tr form-group">
+                <div class="col-md-4 group td tdleft">Template</div>
+                <div class="col-md-4 group td tdright"><p class="template"></p></div>
+            </div>
+            <div class="tr form-group">
+                <div class="col-md-4 group td tdleft"><p>Description<p></p></div>
+                <div class="col-md-4 group td tdright"><p class="description"></p></div>
+            </div>
+            <div class="tr form-group">
+                <div class="col-md-4 group td tdleft">Example</div>
+                <div class="col-md-4 group td tdright"><p class="example"></p></div>
+            </div>
+        </div>
+    </script>
+
+    <!-- custom js -->
+    <script type="text/javascript">
+
+        mmmf.page.startUp = function () {
+            console.log("startUp firing");
+
+            mmmf.services.metaTags.readType(mmmf.page.ownerId, mmmf.page.ownerType, mmmf.page.readSuccess,
+                mmmf.page.ajaxError);
+        }
+
+        mmmf.page.readSuccess = function (data, status, xhr) {
+            console.log("read success");
+            console.log(JSON.stringify(data));
+            mmmf.page.arrayValues = data.items;
+            Mmmf.page.generateMetaType(mmmf.page.arrayValues);
+
+        }
+
+        mmmf.page.addSuccess = function (data, mtid) {
+            console.log("add success");
+            console.log(JSON.stringify(data));
+
+            var selector = "div[data-metaTagId='"+ mtid + "']";
+            var targetTable = $(selector).closest(".table");
+
+            targetTable.find(".pageMetaTagId").attr("data-pageMetaTagId", data.item);
+
+        }
+
+        mmmf.page.updateSuccess = function (data, status, xhr) {
+            console.log("update success");
+            console.log(JSON.stringify(data));
+        }
+
+        mmmf.page.ajaxError = function (jqXHR, textStatus, errorThrown) {
+            console.log("ajax error");
+            console.log(jqXHR.responseJSON);
+        }
+
+        mmmf.page.generateMetaType = function (arr) {
+            if (arr != null) {
+                console.log("generating meta values");
+
+                for (var i = 0; i < arr.length; i++) {
+                    var currItem = arr[i];
+                    var newValue = Mmmf.page.metaValueItem(currItem);
+                    $("#values").append(newValue);
+
+                    mmmf.page.xeditable(newValue, mmmf.page.handlers.onValueChange);
+                }
+            }
+        }
+
+        mmmf.page.metaValueItem = function (obj) {
+            console.log("meta value generating");
+
+            var newValue = $($("#metaValueBox").html());
+
+            newValue.find(".value").text(obj.value);
+            newValue.find(".pageMetaTagId").attr("data-pageMetaTagId", obj.pageId);
+            newValue.find(".metaTagId").attr("data-metaTagId", obj.id);
+            newValue.find(".type").text(obj.name);
+            newValue.find(".template").text(obj.template);
+            newValue.find(".description").text(obj.description);
+            newValue.find(".example").text(obj.example);
+
+            return newValue;
+        }
+
+        mmmf.page.xeditable = function (cntx, onChange) {
+
+            var settings = {
+                type: 'text',
+                name: 'value',
+                title: 'Enter Value',
+                mode: 'inline',
+                validate: Mmmf.page.xeditableValidate,
+                success: onChange
+            };
+
+            $('.metaV', cntx).editable(settings);
+        }
+
+        mmmf.page.xeditableValidate = function (value) {
+            if ($.trim(value) == "") {
+                return "This field is required";
+            }
+        }
+
+        mmmf.page.handlers.onValueChange = function(response, newValue) {
+            var cntx = $(this).closest(".table");
+            var pmId = cntx.find(".pageMetaTagId").attr("data-pageMetaTagId");
+            var mId = cntx.find(".metaTagId").attr("data-metaTagId");
+            var data = "metatagid=" + mId + "&value=" + newValue + "&ownerid=" + Mmmf.page.ownerId
+                + "&ownerType=" + Mmmf.page.ownerType;
+
+            if (pmId === "0") {
+                Mmmf.services.metaTags.add(data, mId,Mmmf.page.addSuccess, Mmmf.page.ajaxError);
+            }
+            else {
+                data += "&Id=" + pmId;
+                Mmmf.services.metaTags.update(pmId, data, Mmmf.page.updateSuccess, Mmmf.page.ajaxError);
+            }
+        }
+
+    </script>
+
+}
